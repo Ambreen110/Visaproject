@@ -5,6 +5,9 @@
 /* Custom global styles */
 body {
   @apply font-sans m-0 p-0;
+  font-family: 'Helvetica', sans-serif;
+
+
 }
 
 h1 {
@@ -18,3 +21,14 @@ form {
 input, button {
   @apply my-2 p-2;
 }
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/Helvetica.woff2') format('woff2'),
+       url('/fonts/Helvetica.woff') format('woff'),
+       url('/fonts/Helvetica.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+
