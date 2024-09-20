@@ -21,7 +21,7 @@ const visaSchema = new mongoose.Schema({
   passportExpiryDate: Date,
   entryDate: Date,
   departureDate: Date,
-});
+}, { collection: 'visaDetails' });
 
 const Visa = mongoose.models.Visa || mongoose.model('Visa', visaSchema);
 

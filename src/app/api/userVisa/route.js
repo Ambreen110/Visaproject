@@ -1,69 +1,36 @@
-import multer from 'multer';
 import { connectToDatabase } from '@/utils/db';
-import Visa from '@/models/visa';
+import fs from 'fs';
+import path from 'path';
 
-// Configure multer for file storage
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: '../../../../public/uploads', 
-    filename: (req, file, cb) => {
-      cb(null, Date.now() + '-' + file.originalname);
-    },
-  }),
-});
+export async function POST(req) {
+  const formData = await req.formData();
+  const passportNumber = formData.get('passportNumber');
+  const dob = formData.get('dob');
+  const file = formData.get('file');
 
-const uploadMiddleware = upload.single('visaFile');
+  if (!passportNumber || !dob || !file) {
+    return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
+  }
 
-export async function POST(req, res) {
-  // Promisify the middleware to use in async function
-  const runMiddleware = (req, res, fn) =>
-    new Promise((resolve, reject) => {
-      fn(req, res, (result) => {
-        if (result instanceof Error) {
-          return reject(result);
-        }
-        return resolve(result);
-      });
-    });
+  const visaNumber = passportNumber + dob; 
+
+  const uploadPath = path.join(process.cwd(), 'public', 'downloads', `${visaNumber}.pdf`);
 
   try {
-    // Connect to MongoDB
-    console.log('Connecting to the database...');
-    await connectToDatabase();
-    console.log('Database connected.');
+    const buffer = await file.arrayBuffer();
+    fs.writeFileSync(uploadPath, Buffer.from(buffer));
 
-    // Handle file upload
-    console.log('Handling file upload...');
-    await runMiddleware(req, res, uploadMiddleware);
-
-    // Check if file was uploaded
-    if (!req.file) {
-      throw new Error('File upload failed');
-    }
-
-    // Save file details to MongoDB
-    const uploadedFile = new Visa({
-      filename: req.file.filename,
-      path: `/uploads/${req.file.filename}`,
+    const { db } = await connectToDatabase();
+    const result = await db.collection('userVisaUploads').insertOne({
+      passportNumber,
+      dob,
+      visaPath: `/downloads/${visaNumber}.pdf`, 
+      uploadedAt: new Date(),
     });
 
-    await uploadedFile.save(); // Save to MongoDB
-
-    res.status(200).json({
-      message: 'Visa soft copy uploaded and saved to database successfully!',
-      file: req.file,
-    });
+    return new Response(JSON.stringify({ message: 'Visa uploaded successfully!', result }), { status: 200 });
   } catch (error) {
-    console.error('Error during upload process:', error.message);
-    res.status(500).json({
-      error: `Failed to upload visa soft copy and save to database: ${error.message}`,
-    });
+    console.error('Error uploading visa:', error);
+    return new Response(JSON.stringify({ message: 'Failed to upload visa' }), { status: 500 });
   }
 }
-
-// Disable bodyParser to allow multer to handle the form data
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
 import React, { useState } from 'react';
 
 const UserRetrieve = () => {
   const [passportNumber, setPassportNumber] = useState('');
   const [dob, setDob] = useState('');
-  const [visaData, setVisaData] = useState(null); // State to store retrieved visa data
+  const [visaData, setVisaData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -13,22 +13,27 @@ const UserRetrieve = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+  
     try {
-      // Make a GET request to retrieve visa details
-      const response = await fetch(`/api/retreive?passportNo=${encodeURIComponent(passportNumber)}&dob=${encodeURIComponent(dob)}`);
-
+      const response = await fetch(`/api/retrieve?passportNo=${encodeURIComponent(passportNumber)}&dob=${encodeURIComponent(dob)}`);
+  
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-
-      const data = await response.json();
-
-      if (data.length === 0) {
-        setError('No visa found for the provided details.');
-      } else {
-        setVisaData(data[0]); // Assuming the response is an array with one document
-      }
+  
+      // Create a URL from the response
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+  
+      // Create a link element and download the PDF
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'visa.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+  
     } catch (error) {
       setError(error.message);
     } finally {
@@ -38,14 +43,10 @@ const UserRetrieve = () => {
 
   const handleDownload = () => {
     if (visaData) {
-      // Create a Blob from the visa data
-      const blob = new Blob([JSON.stringify(visaData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'visa-details.json';
-      a.click();
-      URL.revokeObjectURL(url);
+      const link = document.createElement('a');
+      link.href = `/api/download-pdf?passportNo=${encodeURIComponent(passportNumber)}&dob=${encodeURIComponent(dob)}`;
+      link.download = 'visa-details.pdf';
+      link.click();
     }
   };
 

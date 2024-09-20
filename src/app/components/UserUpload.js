@@ -1,22 +1,43 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
 
 const UserUpload = () => {
   const [passportNumber, setPassportNumber] = useState('');
   const [dob, setDob] = useState('');
   const [file, setFile] = useState(null);
+  const [uploadMessage, setUploadMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Implement file upload logic here
+    
+    const formData = new FormData();
+    formData.append('passportNumber', passportNumber);
+    formData.append('dob', dob);
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/userVisa', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setUploadMessage('Failed to upload visa.');
+      } else {
+        setUploadMessage(result.message);
+      }
+    } catch (error) {
+      setUploadMessage('An error occurred while uploading.');
+      console.error('Error:', error);
+    }
   };
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
       <h2 className="text-2xl font-bold mb-4">Upload Visa</h2>
-      <form method="POST" action="/api/upload" encType="multipart/form-data">
-
-      {/* <form onSubmit={handleSubmit}> */}
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="mb-4">
           <label htmlFor="passportNumber" className="block text-gray-700">Passport Number</label>
           <input
@@ -40,7 +61,7 @@ const UserUpload = () => {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="file" className="block text-gray-700">Visa Scan</label>
+          <label htmlFor="file" className="block text-gray-700">Visa Scan (PDF)</label>
           <input
             type="file"
             id="file"
@@ -56,6 +77,7 @@ const UserUpload = () => {
           Upload Visa
         </button>
       </form>
+      {uploadMessage && <p className="mt-4">{uploadMessage}</p>}
     </div>
   );
 };
