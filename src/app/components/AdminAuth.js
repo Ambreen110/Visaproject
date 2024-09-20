@@ -6,7 +6,7 @@ export default function AdminAuth({ children }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (password === 'admin') {  // Replace with a more secure authentication method
+    if (password === 'admin') {  
       setAuthenticated(true);
     } else {
       alert('Invalid password');

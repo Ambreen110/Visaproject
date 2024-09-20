@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import VisaList from '../components/VisaList';
 import UploadVisa from '../components/UploadVisa'; 
+import UserUploadedVisas from '../components/UserUploadedVisas';
 
 export default function AdminPanel() {
-  const [view, setView] = useState('list'); // 'list' or 'upload'
+  const [view, setView] = useState('list'); 
 
   return (
     <div>
@@ -22,9 +23,16 @@ export default function AdminPanel() {
         >
           Upload Visa Form
         </button>
+        <button 
+  onClick={() => setView('userUploaded')} 
+  className={`px-4 py-2 rounded ${view === 'userUploaded' ? 'bg-purple-600' : 'bg-purple-500'} text-white hover:bg-purple-700`}
+>
+  User Uploaded Visas
+</button>
       </div>
       {view === 'list' && <VisaList />}
       {view === 'upload' && <UploadVisa />}
-    </div>
+      {view === 'userUploaded' && <UserUploadedVisas />}
+      </div>
   );
 }

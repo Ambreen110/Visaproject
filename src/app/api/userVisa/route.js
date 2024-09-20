@@ -4,15 +4,15 @@ import path from 'path';
 
 export async function POST(req) {
   const formData = await req.formData();
-  const passportNumber = formData.get('passportNumber');
+  const passportNo = formData.get('passportNo');
   const dob = formData.get('dob');
   const file = formData.get('file');
 
-  if (!passportNumber || !dob || !file) {
+  if (!passportNo || !dob || !file) {
     return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
   }
 
-  const visaNumber = passportNumber + dob; 
+  const visaNumber = passportNo + dob; 
 
   const uploadPath = path.join(process.cwd(), 'public', 'downloads', `${visaNumber}.pdf`);
 
@@ -22,7 +22,7 @@ export async function POST(req) {
 
     const { db } = await connectToDatabase();
     const result = await db.collection('userVisaUploads').insertOne({
-      passportNumber,
+      passportNo,
       dob,
       visaPath: `/downloads/${visaNumber}.pdf`, 
       uploadedAt: new Date(),

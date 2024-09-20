@@ -124,7 +124,6 @@ function UploadForm() {
             </div>
           </div>
     
-          {/* Visa Holder Details */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Visa Holder Details (ﺑﻴﺎﻧﺎت ﺻﺎﺣﺐ اﻟﺘﺄﺷﻴﺮة)</h2>
     

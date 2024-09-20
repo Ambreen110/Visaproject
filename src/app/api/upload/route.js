@@ -32,7 +32,6 @@ export async function POST(req) {
   try {
     const { db } = await connectToDatabase();
 
-    // Insert data into the database
     const result = await db.collection('visaDetails').insertOne({
       visaNumber,
       visaTypeArabic,
@@ -56,18 +55,14 @@ export async function POST(req) {
       departureDate,
     });
 
-    // Create a PDF document
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
     const pdfPath = path.join(process.cwd(), 'public', 'uploads', `${visaNumber}.pdf`);
 
-    // Pipe the PDF into a file
     doc.pipe(fs.createWriteStream(pdfPath));
 
-    // Add title
-    doc.fontSize(25).text('Visa Details', { align: 'center' });
-    doc.moveDown();
+    doc.fontSize(18).text('Visa Details', { align: 'center' });
+    doc.moveDown(0.5);
 
-    // Create table structure
     const table = [
       ['Field', 'Details'],
       ['Visa Number', visaNumber],
@@ -92,29 +87,29 @@ export async function POST(req) {
       ['Date of Departure', departureDate],
     ];
 
-    const tableWidth = 500;
+    const tableWidth = 480;
     const columnWidth = tableWidth / 2;
 
-    // Draw table headers
-    doc.fontSize(12).fillColor('black');
+    doc.fillColor('#d9d9d9');
+    doc.rect(50, doc.y, tableWidth, 20).fill();
+    doc.fillColor('black');
+
+    doc.fontSize(12).text('Field', 50, doc.y + 5, { width: columnWidth, align: 'left' });
+    doc.text('Details', 50 + columnWidth, doc.y + 5, { width: columnWidth, align: 'left' });
+    doc.moveDown();
+
     table.forEach((row, index) => {
       const [field, details] = row;
 
-      // Draw header background
-      if (index === 0) {
-        doc.fillColor('#d9d9d9');
-        doc.rect(50, doc.y, tableWidth, 20).fill();
-        doc.fillColor('black');
-      }
+      doc.fillColor(index % 2 === 0 ? '#ffffff' : '#f2f2f2');
+      doc.rect(50, doc.y, tableWidth, 20).fill();
+      doc.fillColor('black');
 
-      // Draw table cells
-      doc.text(field, 50, doc.y, { width: columnWidth, align: 'left' });
-      doc.text(details, 50 + columnWidth, doc.y, { width: columnWidth, align: 'left' });
-
-      doc.moveDown(1);
+      doc.fontSize(10).text(field, 50, doc.y + 5, { width: columnWidth, align: 'left' });
+      doc.text(details, 50 + columnWidth, doc.y + 5, { width: columnWidth, align: 'left' });
+      doc.moveDown();
     });
 
-    // Finalize the PDF and end the stream
     doc.end();
 
     return new Response(JSON.stringify({ message: 'Visa details uploaded and PDF generated successfully!', result }), { status: 200 });

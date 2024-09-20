@@ -7,7 +7,6 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Implement admin login logic here
   };
 
   return (

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const visaSchema = new mongoose.Schema({
-  visaNumber: String,
+  visaNumber: { type: String, unique: true, required: true },
   visaTypeArabic: String,
   visaTypeEnglish: String,
   visaPurposeArabic: String,
@@ -17,7 +17,7 @@ const visaSchema = new mongoose.Schema({
   occupationArabic: String,
   occupationEnglish: String,
   dob: Date,
-  passportNo: String,
+  passportNo: { type: String, unique: true, required: true },
   passportExpiryDate: Date,
   entryDate: Date,
   departureDate: Date,

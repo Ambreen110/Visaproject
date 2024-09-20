@@ -21,11 +21,9 @@ const UserRetrieve = () => {
         throw new Error('Network response was not ok');
       }
   
-      // Create a URL from the response
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
   
-      // Create a link element and download the PDF
       const a = document.createElement('a');
       a.href = url;
       a.download = 'visa.pdf';
