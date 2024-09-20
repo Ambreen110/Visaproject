@@ -1,11 +1,11 @@
 import { connectToDatabase } from '@/utils/db'; 
-import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
+import PDFDocument from 'pdfkit';
+import Helvetica from '../../file/Helvetica.afm';
 
 export async function POST(req) {
-  const data = await req.json();
-
+  const data = await req.json()
   const {
     visaNumber,
     visaTypeArabic,
@@ -56,11 +56,21 @@ export async function POST(req) {
     });
 
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+    // Ensure Helvetica font is available by creating the file
+    const fontDir = path.join(process.cwd(), 'public', 'uploads', 'data');
+    if (!fs.existsSync(fontDir)) {
+      fs.mkdirSync(fontDir, { recursive: true });
+    }
+    const fontPath = path.join(fontDir, 'Helvetica.afm');
+    fs.writeFileSync(fontPath, Helvetica);
+
+    doc.registerFont('Helvetica', fontPath);
     const pdfPath = path.join(process.cwd(), 'public', 'uploads', `${visaNumber}.pdf`);
 
     doc.pipe(fs.createWriteStream(pdfPath));
 
-    doc.fontSize(18).text('Visa Details', { align: 'center' });
+    doc.font('Helvetica').fontSize(18).text('Visa Details', { align: 'center' });
     doc.moveDown(0.5);
 
     const table = [
