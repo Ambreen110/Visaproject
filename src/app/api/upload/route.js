@@ -2,7 +2,7 @@ import { connectToDatabase } from '@/utils/db';
 import fs from 'fs';
 import path from 'path';
 import PDFDocument from 'pdfkit';
-import Helvetica from '../../file/Helvetica.afm';
+import Helvetica from '../../../../public/fonts/Helvetica.afm';
 
 export async function POST(req) {
   const data = await req.json()
