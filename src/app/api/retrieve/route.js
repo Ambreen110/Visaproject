@@ -16,9 +16,16 @@ export async function GET(req) {
       });
     }
 
-    const { db } = await connectToDatabase();
+    const dobDate = new Date(dob);
+    await connectToDatabase();
 
-    let visaDetails = await Visa.findOne({ passportNo, dob }).exec();
+    const visaDetails = await Visa.findOne({
+      passportNo,
+      dob: {
+        $gte: new Date(dobDate.setUTCHours(0, 0, 0, 0)),
+        $lt: new Date(dobDate.setUTCHours(23, 59, 59, 999)),
+      },
+    }).exec();
 
     if (!visaDetails) {
       return new Response(JSON.stringify({ message: 'Visa not found' }), {
@@ -27,8 +34,10 @@ export async function GET(req) {
       });
     }
 
-    const pdfFileName = visaDetails.pdfPath || `${visaDetails.visaNumber}.pdf`;
-    const pdfPath = path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
+    const pdfFileName = visaDetails.pdfPath || `${visaDetails.visaNumber || 'default'}.pdf`;
+    const pdfPath = path.isAbsolute(pdfFileName)
+      ? pdfFileName
+      : path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
 
     if (!fs.existsSync(pdfPath)) {
       return new Response(JSON.stringify({ message: 'PDF file not found' }), {
@@ -37,8 +46,9 @@ export async function GET(req) {
       });
     }
 
-    const fileStream = fs.createReadStream(pdfPath);
-    return new Response(fileStream, {
+    const fileBuffer = fs.readFileSync(pdfPath);
+
+    return new Response(fileBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${pdfFileName}"`,

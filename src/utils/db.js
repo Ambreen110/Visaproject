@@ -1,21 +1,21 @@
-import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 
-const uri = process.env.MONGODB_URI; // Ensure this is set correctly in your deployment
-
-let client;
-let db;
+const uri = process.env.MONGODB_URI;
+let isConnected;
 
 export async function connectToDatabase() {
-  if (db) {
-    return { db, client };
+  if (isConnected) {
+    return { db: mongoose.connection }; 
   }
-  
-  client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  
-  await client.connect();
-  db = client.db(process.env.DB_NAME); 
-  return { db, client };
+  try {
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 30000, 
+    });
+    isConnected = true;
+    console.log('Connected to MongoDB');
+    return { db: mongoose.connection }; 
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error; 
+  }
 }

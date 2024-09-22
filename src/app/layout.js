@@ -20,7 +20,6 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="bg-gray-100 text-gray-900 font-sans">
-        {/* Header */}
         <header className="fixed top-0 left-0 right-0 w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md h-16 flex items-center justify-center px-4 z-50">
   {/* Sidebar Toggle Button */}
   <button
@@ -52,9 +51,7 @@ export default function RootLayout({ children }) {
 
 
 
-        {/* Layout with Sidebar */}
         <div className="flex min-h-screen">
-          {/* Sidebar */}
           <nav
             id="sidebar"
             className={`bg-gradient-to-r from-gray-800 to-gray-700 text-white w-64 h-full fixed top-0 z-50 transform ${
@@ -103,7 +100,6 @@ export default function RootLayout({ children }) {
 
         </div>
 
-        {/* Footer */}
         <footer className="bg-gray-900 text-white py-4">
           <div className="container mx-auto text-center">
             <p>
@@ -113,7 +109,6 @@ export default function RootLayout({ children }) {
           </div>
         </footer>
 
-        {/* Overlay for Mobile Sidebar */}
         <div
           className={`fixed inset-0 bg-black opacity-50 z-40 md:hidden ${
             sidebarOpen ? "block" : "hidden"

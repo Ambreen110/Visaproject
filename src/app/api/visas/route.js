@@ -3,8 +3,7 @@ import Visa from '../../../models/visa';
 
 export async function GET() {
   try {
-    const { db } = await connectToDatabase();
-    console.log('Connected to database:', db.databaseName);
+    await connectToDatabase(); 
 
     const visas = await Visa.find({}).exec();
     console.log('Fetched visas:', visas); 
