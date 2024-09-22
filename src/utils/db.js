@@ -1,17 +1,21 @@
-import mongoose from 'mongoose';
+import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI; // Ensure this is set correctly in your deployment
 
-if (process.env.NODE_ENV === 'development') {
-  if (!global._mongooseClientPromise) {
-    mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-    global._mongooseClientPromise = mongoose.connection;
-  }
-} else {
-  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-}
+let client;
+let db;
 
 export async function connectToDatabase() {
-  await mongoose.connection; 
-  return { db: mongoose.connection.db };
+  if (db) {
+    return { db, client };
+  }
+  
+  client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  
+  await client.connect();
+  db = client.db(process.env.DB_NAME); 
+  return { db, client };
 }
