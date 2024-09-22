@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/utils/db';
-import Visa from '@/models/visa'; // Use the Visa model
+import Visa from '@/models/visa'; 
 import path from 'path';
 import fs from 'fs';
 
@@ -18,7 +18,6 @@ export async function GET(req) {
 
     const { db } = await connectToDatabase();
 
-    // Use the Visa model to find the visa details
     let visaDetails = await Visa.findOne({ passportNo, dob }).exec();
 
     if (!visaDetails) {
@@ -28,8 +27,7 @@ export async function GET(req) {
       });
     }
 
-    // Get the PDF path from the visa details
-    const pdfFileName = visaDetails.pdfPath || `${visaDetails.visaNumber}.pdf`; // Adjust if necessary
+    const pdfFileName = visaDetails.pdfPath || `${visaDetails.visaNumber}.pdf`;
     const pdfPath = path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
 
     if (!fs.existsSync(pdfPath)) {

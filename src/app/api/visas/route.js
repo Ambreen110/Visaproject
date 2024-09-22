@@ -6,7 +6,6 @@ export async function GET() {
     const { db } = await connectToDatabase();
     console.log('Connected to database:', db.databaseName);
 
-    // Use the Visa model to find all visas
     const visas = await Visa.find({}).exec();
     console.log('Fetched visas:', visas); 
 

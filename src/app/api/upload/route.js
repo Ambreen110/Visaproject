@@ -31,7 +31,6 @@ export async function POST(req) {
   const { db } = await connectToDatabase();
 
   try {
-    // Check for unique visa and passport numbers
     const existingVisa = await Visa.findOne({ visaNumber });
     const existingPassport = await Visa.findOne({ passportNo });
 
@@ -42,31 +41,26 @@ export async function POST(req) {
       return new Response(JSON.stringify({ message: 'Passport Number must be unique' }), { status: 400 });
     }
 
-    // Generate PDF
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([600, 400]);
 
-    // Load background image
     const imageBytes = fs.readFileSync(path.join(process.cwd(), 'public', 'images', 'background.png'));
     const backgroundImage = await pdfDoc.embedPng(imageBytes);
     page.drawImage(backgroundImage, { x: 0, y: 0, width: page.getWidth(), height: page.getHeight() });
 
-    // Add a semi-transparent overlay for fade effect
     page.drawRectangle({
       x: 0,
       y: 0,
       width: page.getWidth(),
       height: page.getHeight(),
-      color: rgb(1, 1, 1), // White color for a subtle fade
-      opacity: 0.05, // Very low opacity for a slight fade
+      color: rgb(1, 1, 1), 
+      opacity: 0.05, 
     });
 
-    // Define text position and styles
     const drawText = (text, x, y) => {
       page.drawText(text, { x, y, size: 12, color: rgb(0, 0, 0) });
     };
 
-    // Add all fields to the PDF
     drawText(`Visa Number: ${visaNumber}`, 50, 350);
     drawText(`Visa Type (Arabic): ${visaTypeArabic}`, 50, 330);
     drawText(`Visa Type (English): ${visaTypeEnglish}`, 50, 310);
@@ -88,14 +82,12 @@ export async function POST(req) {
     drawText(`Entry Date: ${new Date(entryDate).toLocaleDateString()}`, 300, 350);
     drawText(`Departure Date: ${new Date(departureDate).toLocaleDateString()}`, 300, 330);
 
-    // Save PDF to file system
-    const pdfDir = path.join(process.cwd(), 'public', 'Pdfs'); // Ensure this directory exists
+    const pdfDir = path.join(process.cwd(), 'public', 'Pdfs');
     const pdfFilePath = path.join(pdfDir, `${visaNumber}.pdf`);
 
     const pdfBytes = await pdfDoc.save();
     fs.writeFileSync(pdfFilePath, pdfBytes);
 
-    // Save to the database
     const visa = await Visa.create({
       visaNumber,
       visaTypeArabic,
