@@ -1,4 +1,5 @@
 import { connectToDatabase } from '@/utils/db';
+import Visa from '@/models/visa'; // Use the Visa model
 import path from 'path';
 import fs from 'fs';
 
@@ -17,11 +18,8 @@ export async function GET(req) {
 
     const { db } = await connectToDatabase();
 
-    let visaDetails = await db.collection('visaDetails').findOne({ passportNo, dob });
-
-    if (!visaDetails) {
-      visaDetails = await db.collection('userVisaUploads').findOne({ passportNumber: passportNo, dob });
-    }
+    // Use the Visa model to find the visa details
+    let visaDetails = await Visa.findOne({ passportNo, dob }).exec();
 
     if (!visaDetails) {
       return new Response(JSON.stringify({ message: 'Visa not found' }), {
@@ -30,9 +28,9 @@ export async function GET(req) {
       });
     }
 
-    const visaPath = visaDetails.visaPath || visaDetails.visaNumber; 
-
-    const pdfPath = path.join(process.cwd(), 'public', 'downloads', `${visaPath.split('/').pop()}`);
+    // Get the PDF path from the visa details
+    const pdfFileName = visaDetails.pdfPath || `${visaDetails.visaNumber}.pdf`; // Adjust if necessary
+    const pdfPath = path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
 
     if (!fs.existsSync(pdfPath)) {
       return new Response(JSON.stringify({ message: 'PDF file not found' }), {
@@ -45,7 +43,7 @@ export async function GET(req) {
     return new Response(fileStream, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${visaPath.split('/').pop()}"`,
+        'Content-Disposition': `attachment; filename="${pdfFileName}"`,
       },
     });
 

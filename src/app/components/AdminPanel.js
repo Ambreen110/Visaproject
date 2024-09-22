@@ -23,16 +23,16 @@ export default function AdminPanel() {
         >
           Upload Visa Form
         </button>
-        <button 
+        {/* <button 
   onClick={() => setView('userUploaded')} 
   className={`px-4 py-2 rounded ${view === 'userUploaded' ? 'bg-purple-600' : 'bg-purple-500'} text-white hover:bg-purple-700`}
 >
   User Uploaded Visas
-</button>
+</button> */}
       </div>
       {view === 'list' && <VisaList />}
       {view === 'upload' && <UploadVisa />}
-      {view === 'userUploaded' && <UserUploadedVisas />}
+      {/* {view === 'userUploaded' && <UserUploadedVisas />} */}
       </div>
   );
 }

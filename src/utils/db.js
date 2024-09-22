@@ -1,23 +1,17 @@
+import mongoose from 'mongoose';
 
-import { MongoClient } from 'mongodb';
-
-const uri = process.env.MONGODB_URI; 
-let client;
-let clientPromise;
+const uri = process.env.MONGODB_URI;
 
 if (process.env.NODE_ENV === 'development') {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri);
-    global._mongoClientPromise = client.connect();
+  if (!global._mongooseClientPromise) {
+    mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    global._mongooseClientPromise = mongoose.connection;
   }
-  clientPromise = global._mongoClientPromise;
 } else {
-  client = new MongoClient(uri);
-  clientPromise = client.connect();
+  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 }
 
 export async function connectToDatabase() {
-  const client = await clientPromise;
-  const db = client.db('Visa'); 
-  return { db, client };
+  await mongoose.connection; 
+  return { db: mongoose.connection.db };
 }
