@@ -5,8 +5,6 @@ import fs from 'fs';
 import path from 'path';
 
 export async function POST(req) {
-  const { db } = await connectToDatabase(); 
-
   const {
     visaNumber,
     visaTypeArabic,
@@ -30,9 +28,11 @@ export async function POST(req) {
     departureDate,
   } = await req.json();
 
+  const { db } = await connectToDatabase();
+
   try {
-    const existingVisa = await db.model('Visa').findOne({ visaNumber });
-    const existingPassport = await db.model('Visa').findOne({ passportNo });
+    const existingVisa = await Visa.findOne({ visaNumber });
+    const existingPassport = await Visa.findOne({ passportNo });
 
     if (existingVisa) {
       return new Response(JSON.stringify({ message: 'Visa Number must be unique' }), { status: 400 });
@@ -53,38 +53,34 @@ export async function POST(req) {
       y: 0,
       width: page.getWidth(),
       height: page.getHeight(),
-      color: rgb(1, 1, 1),
-      opacity: 0.05,
+      color: rgb(1, 1, 1), 
+      opacity: 0.05, 
     });
 
     const drawText = (text, x, y) => {
       page.drawText(text, { x, y, size: 12, color: rgb(0, 0, 0) });
     };
 
-    const fields = [
-      { text: `Visa Number: ${visaNumber}`, x: 50, y: 350 },
-      { text: `Visa Type (Arabic): ${visaTypeArabic}`, x: 50, y: 330 },
-      { text: `Visa Type (English): ${visaTypeEnglish}`, x: 50, y: 310 },
-      { text: `Visa Purpose (Arabic): ${visaPurposeArabic}`, x: 50, y: 290 },
-      { text: `Visa Purpose (English): ${visaPurposeEnglish}`, x: 50, y: 270 },
-      { text: `Date of Issue: ${new Date(dateOfIssue).toLocaleDateString()}`, x: 50, y: 250 },
-      { text: `Date of Expiry: ${new Date(dateOfExpiry).toLocaleDateString()}`, x: 50, y: 230 },
-      { text: `Place of Issue (Arabic): ${placeOfIssueArabic}`, x: 50, y: 210 },
-      { text: `Full Name (Arabic): ${fullNameArabic}`, x: 50, y: 190 },
-      { text: `Full Name (English): ${fullNameEnglish}`, x: 50, y: 170 },
-      { text: `MOI Reference: ${moiReference}`, x: 50, y: 150 },
-      { text: `Nationality: ${nationality}`, x: 50, y: 130 },
-      { text: `Gender: ${gender}`, x: 50, y: 110 },
-      { text: `Occupation (Arabic): ${occupationArabic}`, x: 50, y: 90 },
-      { text: `Occupation (English): ${occupationEnglish}`, x: 50, y: 70 },
-      { text: `Date of Birth: ${new Date(dob).toLocaleDateString()}`, x: 50, y: 50 },
-      { text: `Passport No: ${passportNo}`, x: 50, y: 30 },
-      { text: `Passport Expiry: ${new Date(passportExpiry).toLocaleDateString()}`, x: 50, y: 10 },
-      { text: `Entry Date: ${new Date(entryDate).toLocaleDateString()}`, x: 300, y: 350 },
-      { text: `Departure Date: ${new Date(departureDate).toLocaleDateString()}`, x: 300, y: 330 },
-    ];
-
-    fields.forEach(field => drawText(field.text, field.x, field.y));
+    drawText(`Visa Number: ${visaNumber}`, 50, 350);
+    drawText(`Visa Type (Arabic): ${visaTypeArabic}`, 50, 330);
+    drawText(`Visa Type (English): ${visaTypeEnglish}`, 50, 310);
+    drawText(`Visa Purpose (Arabic): ${visaPurposeArabic}`, 50, 290);
+    drawText(`Visa Purpose (English): ${visaPurposeEnglish}`, 50, 270);
+    drawText(`Date of Issue: ${new Date(dateOfIssue).toLocaleDateString()}`, 50, 250);
+    drawText(`Date of Expiry: ${new Date(dateOfExpiry).toLocaleDateString()}`, 50, 230);
+    drawText(`Place of Issue (Arabic): ${placeOfIssueArabic}`, 50, 210);
+    drawText(`Full Name (Arabic): ${fullNameArabic}`, 50, 190);
+    drawText(`Full Name (English): ${fullNameEnglish}`, 50, 170);
+    drawText(`MOI Reference: ${moiReference}`, 50, 150);
+    drawText(`Nationality: ${nationality}`, 50, 130);
+    drawText(`Gender: ${gender}`, 50, 110);
+    drawText(`Occupation (Arabic): ${occupationArabic}`, 50, 90);
+    drawText(`Occupation (English): ${occupationEnglish}`, 50, 70);
+    drawText(`Date of Birth: ${new Date(dob).toLocaleDateString()}`, 50, 50);
+    drawText(`Passport No: ${passportNo}`, 50, 30);
+    drawText(`Passport Expiry: ${new Date(passportExpiry).toLocaleDateString()}`, 50, 10);
+    drawText(`Entry Date: ${new Date(entryDate).toLocaleDateString()}`, 300, 350);
+    drawText(`Departure Date: ${new Date(departureDate).toLocaleDateString()}`, 300, 330);
 
     const pdfDir = path.join(process.cwd(), 'public', 'Pdfs');
     const pdfFilePath = path.join(pdfDir, `${visaNumber}.pdf`);
@@ -122,5 +118,3 @@ export async function POST(req) {
     return new Response(JSON.stringify({ message: 'Failed to upload visa details' }), { status: 500 });
   }
 }
-
-

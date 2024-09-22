@@ -1,70 +1,75 @@
-import { connectToDatabase } from '../../../utils/db';
-import Visa from '../../../models/visa'; 
-import path from 'path';
+import mongoose from 'mongoose';
+import Visa from '@/models/visa';
 import fs from 'fs';
+import path from 'path';
 
-export async function GET(req) {
+const connectDB = async () => {
+  if (mongoose.connections[0].readyState) {
+    return;
+  }
+  await mongoose.connect(process.env.MONGO_URI);
+};
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const passportNo = searchParams.get('passportNo');
+  const dob = searchParams.get('dob');
+
+  console.log(`Searching for: { passportNo: '${passportNo}', dob: '${dob}' }`);
+
   try {
-    const { searchParams } = new URL(req.url);
-    const passportNo = searchParams.get('passportNo');
-    const dob = searchParams.get('dob');
-
-    // Check for required parameters
-    if (!passportNo || !dob) {
-      return new Response(JSON.stringify({ message: 'Missing passport number or date of birth' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    await connectToDatabase();
+    await connectDB();
 
     const dobDate = new Date(dob);
+
     const visaDetails = await Visa.findOne({
       passportNo,
       dob: {
-        $gte: new Date(dobDate.setUTCHours(0, 0, 0, 0)),
-        $lt: new Date(dobDate.setUTCHours(23, 59, 59, 999)),
+        $gte: new Date(dobDate.getFullYear(), dobDate.getMonth(), dobDate.getDate()),
+        $lt: new Date(dobDate.getFullYear(), dobDate.getMonth(), dobDate.getDate() + 1),
       },
     }).exec();
 
-    // Check if the visa details were found
     if (!visaDetails) {
-      console.warn('Visa not found for the given passport number and date of birth');
-      return new Response(JSON.stringify({ message: 'Visa not found' }), {
+      console.log('No visa found');
+      return new Response(JSON.stringify({ error: 'Visa not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    // Construct the PDF file path
-    const pdfFileName = visaDetails.pdfPath ? path.basename(visaDetails.pdfPath) : `${visaDetails.visaNumber || 'default'}.pdf`;
-    const pdfPath = path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
+    console.log('Visa details found:', visaDetails);
 
-    console.log('PDF Path:', pdfPath); // Debugging line
-
-    // Check if the PDF file exists
-    if (!fs.existsSync(pdfPath)) {
-      console.error('File does not exist at path:', pdfPath); // Debugging line
-      return new Response(JSON.stringify({ message: 'PDF file not found' }), {
+    const pdfPath = visaDetails.pdfPath;
+    if (!pdfPath) {
+      return new Response(JSON.stringify({ error: 'PDF not found for this visa' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    // Read the PDF file and return it in the response
-    const fileBuffer = fs.readFileSync(pdfPath);
-    
-    return new Response(fileBuffer, {
+    const absolutePdfPath = path.resolve(pdfPath);
+
+    if (!fs.existsSync(absolutePdfPath)) {
+      return new Response(JSON.stringify({ error: 'PDF file not found on the server' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const fileStream = fs.createReadStream(absolutePdfPath);
+
+    return new Response(fileStream, {
+      status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${pdfFileName}"`,
+        'Content-Disposition': `inline; filename="${path.basename(pdfPath)}"`,
       },
     });
-
   } catch (error) {
-    console.error('Error retrieving visa details:', error);
-    return new Response(JSON.stringify({ message: 'Failed to retrieve visa details' }), {
+    console.error('Error retrieving visa details or serving PDF:', error);
+
+    return new Response(JSON.stringify({ error: 'Server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
