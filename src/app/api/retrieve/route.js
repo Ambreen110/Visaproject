@@ -35,11 +35,12 @@ export async function GET(req) {
     }
 
     const pdfFileName = visaDetails.pdfPath || `${visaDetails.visaNumber || 'default'}.pdf`;
-    const pdfPath = path.isAbsolute(pdfFileName)
-      ? pdfFileName
-      : path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
+    const pdfPath = path.join(process.cwd(), 'public', 'Pdfs', pdfFileName);
+
+    console.log('PDF Path:', pdfPath); // Debugging line
 
     if (!fs.existsSync(pdfPath)) {
+      console.error('File does not exist at path:', pdfPath); // Debugging line
       return new Response(JSON.stringify({ message: 'PDF file not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
